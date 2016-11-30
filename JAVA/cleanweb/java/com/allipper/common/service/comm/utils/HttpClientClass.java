@@ -1,0 +1,109 @@
+package com.allipper.common.service.comm.utils;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.httpclient.Credentials;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.params.HttpMethodParams;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.config.Config;
+
+public class HttpClientClass {
+	
+	@SuppressWarnings("finally")
+	public Map<String , Object> invokeHTTP( String url , JSONObject obj ){
+		HttpClient httpClient = new HttpClient();
+		Map<String , Object> resultMap = new HashMap<String , Object>();
+		int statusCode = 0;
+		try{
+			PostMethod postMethod = new PostMethod(url);
+			postMethod.getParams().setParameter(HttpMethodParams.HTTP_CONTENT_CHARSET, "utf-8");
+			postMethod.setRequestHeader("Content-Type", "application/json");
+
+			String path = obj.toJSONString();
+			System.out.println(path);
+			RequestEntity entity = new StringRequestEntity(new String(path.getBytes("UTF-8")));
+			postMethod.setRequestEntity(entity);
+			statusCode = httpClient.executeMethod(postMethod);
+			String result = postMethod.getResponseBodyAsString();
+			System.out.println(statusCode);
+			System.out.println(result);
+			
+			resultMap.put("statusCode", statusCode);
+			resultMap.put("result", result);
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		} finally {
+			return resultMap;
+		}
+	}
+	
+	@SuppressWarnings("finally")
+	public Map<String , Object> invokeHTTP( String url , JSONArray array ){
+		HttpClient httpClient = new HttpClient();
+		Map<String , Object> resultMap = new HashMap<String , Object>();
+		int statusCode = 0;
+		try{
+			PostMethod postMethod = new PostMethod(url);
+			postMethod.getParams().setParameter(HttpMethodParams.HTTP_CONTENT_CHARSET, "utf-8");
+			postMethod.setRequestHeader("Content-Type", "application/json");
+
+			String path = array.toJSONString();
+			System.out.println(path);
+			RequestEntity entity = new StringRequestEntity(new String(path.getBytes("UTF-8")));
+			postMethod.setRequestEntity(entity);
+			statusCode = httpClient.executeMethod(postMethod);
+			String result = postMethod.getResponseBodyAsString();
+			System.out.println(statusCode);
+			System.out.println(result);
+			
+			resultMap.put("statusCode", statusCode);
+			resultMap.put("result", result);
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		} finally {
+			return resultMap;
+		}
+	}
+	
+	@SuppressWarnings("finally")
+	public Map<String , Object> invokeHTTP( String url , String objString ){
+		HttpClient httpClient = new HttpClient();
+		Map<String , Object> resultMap = new HashMap<String , Object>();
+		int statusCode = 0;
+		try{
+			httpClient.getParams().setAuthenticationPreemptive(true);
+			Credentials defaultcreds = new UsernamePasswordCredentials( Config.getString("piuser"), Config.getString("pipwd"));
+			httpClient.getState().setCredentials(AuthScope.ANY, defaultcreds);
+			PostMethod postMethod = new PostMethod( url);
+			postMethod.getParams().setParameter( HttpMethodParams.HTTP_CONTENT_CHARSET, "utf-8");
+	
+			String path = "{\"ITEM\":"+objString+"}";
+			System.out.println(path);
+			RequestEntity entity = new StringRequestEntity(new String(path.getBytes("UTF-8")));
+			postMethod.setRequestEntity(entity);
+			statusCode = httpClient.executeMethod(postMethod);
+			String result = postMethod.getResponseBodyAsString();
+			System.out.println(statusCode);
+			System.out.println(result);
+			
+			resultMap.put("statusCode", statusCode);
+			resultMap.put("result", result);
+		}catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		} finally {
+			return resultMap;
+		}
+	}
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="AppInfo">
+	<select id="getAppListInfo" parameterType="java.util.HashMap"
+		resultType="java.util.HashMap">
+		SELECT * FROM appList
+		<if test="appid != null">
+			WHERE appid=#{appid,
+			javaType=String,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<select id="getAppDetail" parameterType="java.util.HashMap"
+		resultType="java.util.HashMap">
+		SELECT * FROM APPINFO
+		<if test="appid != null">
+			WHERE APPID=#{appid,
+			javaType=String,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+</mapper>

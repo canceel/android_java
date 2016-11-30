@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="cleanweb"
+  id="myeclipse.1477617435248"
+  context-root="/cleanweb"
+  j2ee-spec="6.0"
+  archive="cleanweb.war">
+  <attributes>
+    <attribute name="webrootdir" value="WebRoot" />
+  </attributes>
+</project-module>
+

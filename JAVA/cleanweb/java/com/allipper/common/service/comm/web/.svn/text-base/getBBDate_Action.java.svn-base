@@ -1,0 +1,578 @@
+package com.yh.vssService.comm.web;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.alibaba.fastjson.JSONObject;
+import com.yh.vssService.comm.service.CommService;
+import com.yh.vssService.comm.service.BBDate_Service;
+
+/**
+ * 
+ * 查询报表数据
+ * 
+ * @author <a href="mailto:741161260@qq.com">YH_ding</a>
+ *
+ * @version Revision: 1.0  Date: 2016-9-14 上午9:32:31 
+ *
+ */
+@Controller
+@RequestMapping("/vssService/getBBDate_Service.do")
+public class getBBDate_Action extends BaseController{
+	static Logger log=Logger.getLogger(getBBDate_Action.class);
+	
+	@Autowired
+	private BBDate_Service BBDate_Service;
+	@Autowired
+	private CommService commService;
+	
+	/**
+	 * 
+	 * @Description: 获取门店下拉数据
+	 * @author YH_ding 
+	 * @Created 2016-9-18上午10:13:14
+	 * @param request
+	 * @param response
+	 * @param session
+	 */
+	@RequestMapping(params = "method=get_MD",consumes="application/json")
+	public void get_MD(HttpServletRequest request,HttpServletResponse response,HttpSession session){
+		JSONObject result=new JSONObject();
+		try{
+			/*Map<String,Object> checkMap = commService.interfaceCheck(request);
+			if(!"200".equals(checkMap.get("code").toString())){
+				result.put("code", checkMap.get("code"));
+				result.put("message", checkMap.get("message"));
+				return;
+			}
+			String data = request.getParameter("data");
+			if(data==null||"".equals(data)){
+				result.put("code", 300);
+				result.put("message", "传入业务参数为空!");
+				return;
+			}
+			String sessionCode = this.commService.getSessionCode(request);
+			Map<String,Object> vender = this.commService.getLoginVender(sessionCode);
+			if(vender == null || vender.size()<1){
+				result.put("code", 300);
+				result.put("message", "用户未登录!");
+				return;
+			}*/
+			Map<String,Object> param = new HashMap<String, Object>();
+			Map<String,Object> map = BBDate_Service.get_MD(param);
+			result.put("code", 200);
+			result.put("message", "操作成功!");
+			result.put("data", jsonService.getJsonFromMap(map));
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			result.put("code", 400);
+			result.put("message", exp.getMessage());
+		}finally{
+			System.out.println(result.toJSONString());
+			jsonService.writeJson(response, "callback("+result.toJSONString()+")");
+		}
+	}
+	/**
+	 * 获取商品的状态
+	 * @param request
+	 * @param response
+	 * @param session
+	 */
+	@RequestMapping(params = "method=getGoodStatus",consumes="application/json")
+	public void getGoodStatus(HttpServletRequest request,HttpServletResponse response,HttpSession session){
+		JSONObject result=new JSONObject();
+		try{
+			Map<String,Object> map = BBDate_Service.getGoodStatus();
+			result.put("code", 200);
+			result.put("message", "操作成功!");
+			result.put("data", jsonService.getJsonFromMap(map));
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			result.put("code", 400);
+			result.put("message", exp.getMessage());
+		}finally{
+			System.out.println(result.toJSONString());
+			jsonService.writeJson(response, "callback("+result.toJSONString()+")");
+		}
+	}
+	/**
+	 * 获取商品的有效标识
+	 * @param request
+	 * @param response
+	 * @param session
+	 */
+	@RequestMapping(params = "method=getGoodFlag",consumes="application/json")
+	public void getGoodFlag(HttpServletRequest request,HttpServletResponse response,HttpSession session){
+		JSONObject result=new JSONObject();
+		try{
+			Map<String,Object> map = BBDate_Service.getGoodFlag();
+			result.put("code", 200);
+			result.put("message", "操作成功!");
+			result.put("data", jsonService.getJsonFromMap(map));
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			result.put("code", 400);
+			result.put("message", exp.getMessage());
+		}finally{
+			System.out.println(result.toJSONString());
+			jsonService.writeJson(response, "callback("+result.toJSONString()+")");
+		}
+	}
+	
+	/**
+	 * 获取商品类型
+	 * @param request
+	 * @param response
+	 * @param session
+	 */
+	@RequestMapping(params = "method=getGoodType",consumes="application/json")
+	public void getGoodType(HttpServletRequest request,HttpServletResponse response,HttpSession session){
+		JSONObject result=new JSONObject();
+		List<Map<String, Object>> list=new ArrayList<Map<String, Object>>();
+		List<Map<String, Object>> ret=new ArrayList<Map<String, Object>>();
+		try{
+			Map<String,Object> map = BBDate_Service.getGoodType();
+			list=(List) map.get("LXlist");
+			for(int i=0;i<list.size();i++){
+				Map<String,Object> temp=new HashMap<String, Object>();
+				temp.put("id", list.get(i).get("LOV_CODE"));
+				temp.put("text", list.get(i).get("LOV_NAME"));
+				ret.add(temp);				
+			}
+			result.put("par", list.get(0).get("LOV_CODE"));
+			result.put("code", 200);
+			result.put("message", "操作成功!");
+			result.put("data", jsonService.getJsonFromList(ret));
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			result.put("code", 400);
+			result.put("message", exp.getMessage());
+		}finally{
+			System.out.println(result.toJSONString());
+			jsonService.writeJson(response, "callback("+result.toJSONString()+")");
+		}
+	}
+	/**
+	 * 
+	 * @Description: 获取品牌下拉数据
+	 * @author YH_ding 
+	 * @Created 2016-9-18上午10:13:14
+	 * @param request
+	 * @param response
+	 * @param session
+	 */
+	@RequestMapping(params = "method=get_brand",consumes="application/json")
+	public void get_brand(HttpServletRequest request,HttpServletResponse response,HttpSession session){
+		JSONObject result=new JSONObject();
+		try{
+			/*Map<String,Object> checkMap = commService.interfaceCheck(request);
+			if(!"200".equals(checkMap.get("code").toString())){
+				result.put("code", checkMap.get("code"));
+				result.put("message", checkMap.get("message"));
+				return;
+			}
+			*/
+			String sessionCode = this.commService.getSessionCode(request);
+			Map<String,Object> vender = this.commService.getLoginVender(sessionCode);
+			if(vender == null || vender.size()<1){
+				result.put("code", 300);
+				result.put("message", "用户未登录!");
+				return;
+			}
+			
+			String venderCode = (String) vender.get("VENDER_CODE");
+			List<Map<String,Object>> regionList =new ArrayList<Map<String,Object>>();
+			regionList = BBDate_Service.get_brand(venderCode);
+			result.put("code", 200);
+			result.put("message", "操作成功!");
+			result.put("data", jsonService.getJsonArrFromList(regionList));
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			result.put("code", 400);
+			result.put("message", exp.getMessage());
+		}finally{
+			System.out.println(result.toJSONString());
+			jsonService.writeJson(response,"callback("+result.toJSONString()+")");
+		}
+	}
+	
+	/**
+	 * 
+	 * @Description: 获取供应商数据
+	 * @author YH_ding 
+	 * @Created 2016-9-18上午10:13:14
+	 * @param request
+	 * @param response
+	 * @param session
+	 */
+	@RequestMapping(params = "method=get_vender",consumes="application/json")
+	public void get_vender(HttpServletRequest request,HttpServletResponse response,HttpSession session){
+		JSONObject result=new JSONObject();
+		try{
+			/*Map<String,Object> checkMap = commService.interfaceCheck(request);
+			if(!"200".equals(checkMap.get("code").toString())){
+				result.put("code", checkMap.get("code"));
+				result.put("message", checkMap.get("message"));
+				return;
+			}
+			*/
+			String sessionCode = this.commService.getSessionCode(request);
+			Map<String,Object> vender = this.commService.getLoginVender(sessionCode);
+			if(vender == null || vender.size()<1){
+				result.put("code", 300);
+				result.put("message", "用户未登录!");
+				return;
+			}	
+			String venderCode = (String) vender.get("VENDER_CODE");
+			List list =BBDate_Service.get_vender(venderCode);
+		
+			result.put("code", 200);
+			result.put("message", "操作成功!");
+			result.put("data", jsonService.getJsonArrFromList(list));
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			result.put("code", 400);
+			result.put("message", exp.getMessage());
+		}finally{
+			System.out.println(result.toJSONString());
+			jsonService.writeJson(response, "callback("+result.toJSONString()+")");
+		}
+	}
+	/**
+	 * 
+	 * @Description: 获取供应商数据
+	 * @author YH_ding 
+	 * @Created 2016-9-18上午10:13:14
+	 * @param request
+	 * @param response
+	 * @param session
+	 */
+	@RequestMapping(params = "method=getVenderTree",consumes="application/json")
+	public void getVenderTree(HttpServletRequest request,HttpServletResponse response,HttpSession session){
+		JSONObject result=new JSONObject();
+		Map<String, Object> map = new HashMap<String, Object>();
+		List<Map<String, Object>> listData= new ArrayList<Map<String,Object>>();
+		try{
+			String sessionCode = this.commService.getSessionCode(request);
+			Map<String,Object> vender = this.commService.getLoginVender(sessionCode);
+			if(vender == null || vender.size()<1){
+				result.put("code", 300);
+				result.put("message", "用户未登录!");
+				return;
+			}	
+			String venderCode = (String) vender.get("VENDER_CODE");
+			List<Map<String, Object>> list =BBDate_Service.get_vender(venderCode);
+			
+			String type=list.get(0).get("PARENT_CHILD_CD").toString();
+			if("1".equals(type)){
+				map.put("id", list.get(0).get("VENDER_CODE"));
+				map.put("text", list.get(0).get("VENDER"));
+				List<Map<String, Object>> Zlist = new ArrayList<Map<String,Object>>();
+				for(int i=1;i<list.size();i++){
+					Map<String, Object> Zmap = new HashMap<String, Object>();
+					Zmap.put("id", list.get(i).get("VENDER_CODE"));
+					Zmap.put("text", list.get(i).get("VENDER"));
+					Zlist.add(Zmap);	
+				}
+				map.put("children", Zlist);
+				result.put("par", list.get(0).get("VENDER_CODE"));
+				result.put("flag", "1");
+			}else{
+				map.put("id", list.get(0).get("VENDER_CODE"));
+				map.put("text", list.get(0).get("VENDER"));
+				result.put("par", list.get(0).get("VENDER_CODE"));
+				result.put("flag", "2");
+			}
+			listData.add(map);
+			result.put("code", 200);
+			result.put("message", "操作成功!");
+			result.put("data", jsonService.getJsonFromList(listData));
+			System.out.println(jsonService.getJsonFromList(listData));
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			result.put("code", 400);
+			result.put("message", exp.getMessage());
+		}finally{
+//			System.out.println(result);
+			jsonService.writeJson(response, "callback("+result+")");
+		}
+	}
+	/**
+	 * 
+	 * @Description: 获取门店下拉框
+	 * @author YH_ding 
+	 * @Created 2016-9-18上午10:13:14
+	 * @param request
+	 * @param response
+	 * @param session
+	 */
+	@RequestMapping(params = "method=getShopTree",consumes="application/json")
+	public void getShopTree(HttpServletRequest request,HttpServletResponse response,HttpSession session){
+		JSONObject result=new JSONObject();
+		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> Allmap = new HashMap<String, Object>();
+		List<Map<String, Object>> newList= new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> listData= new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> listAllData= new ArrayList<Map<String,Object>>();
+		try{
+			String sessionCode = this.commService.getSessionCode(request);
+			Map<String,Object> vender = this.commService.getLoginVender(sessionCode);
+			if(vender == null || vender.size()<1){
+				result.put("code", 300);
+				result.put("message", "用户未登录!");
+				return;
+			}	
+			Map<String,Object> param = new HashMap<String, Object>();
+			map = BBDate_Service.get_MD(param);
+			List<Map<String, Object>> DQlist = (List<Map<String, Object>>) map.get("DQlist");
+			List<Map<String, Object>> MDlist = (List<Map<String, Object>>) map.get("MDlist");
+			Allmap.put("id", "1");
+			Allmap.put("text", "全部");
+			for(int i=0;i<DQlist.size();i++){
+				List<Map<String, Object>> ZList= new ArrayList<Map<String,Object>>();
+				Map<String, Object> DQmap = new HashMap<String, Object>();
+				DQmap.put("id", DQlist.get(i).get("REGION_CODE"));
+				DQmap.put("text", DQlist.get(i).get("REGION"));
+				DQmap.put("state", "closed");
+				for(int y=0;y<MDlist.size();y++){
+					if(DQlist.get(i).get("REGION_CODE").equals(MDlist.get(y).get("REGION_CODE"))){
+						Map<String, Object> Zmap = new HashMap<String, Object>();
+						Zmap.put("id", MDlist.get(y).get("SHOP_ID"));
+						Zmap.put("text", MDlist.get(y).get("SHOP"));
+						ZList.add(Zmap);
+				}
+					DQmap.put("children", ZList);
+				}
+				listData.add(DQmap);
+			}
+			Allmap.put("children", listData);
+			listAllData.add(Allmap);
+			result.put("code", 200);
+			result.put("message", "操作成功!");
+			result.put("data", jsonService.getJsonFromList(listAllData));
+			System.out.println(jsonService.getJsonFromList(listAllData));
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			result.put("code", 400);
+			result.put("message", exp.getMessage());
+		}finally{
+			System.out.println(result);
+			jsonService.writeJson(response, "callback("+result+")");
+		}
+	}	
+	/**
+	 * 
+	 * @Description: 获取商品状态树形下拉框
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(params = "method=getGoodTree",consumes="application/json")
+	public void getGoodTree(HttpServletRequest request,HttpServletResponse response,HttpSession session){
+		JSONObject result=new JSONObject();
+		Map<String, Object> Allmap = new HashMap<String, Object>();
+		List<Map<String, Object>> listData= new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> listAllData= new ArrayList<Map<String,Object>>();
+		try{
+			String sessionCode = this.commService.getSessionCode(request);
+			Map<String,Object> vender = this.commService.getLoginVender(sessionCode);
+			if(vender == null || vender.size()<1){
+				result.put("code", 300);
+				result.put("message", "用户未登录!");
+				return;
+			}	
+			Map<String,Object> mapData = BBDate_Service.getGoodStatus();
+			List<Map<String, Object>> ZTlist = (List<Map<String, Object>>) mapData.get("ZTlist");
+			Allmap.put("id", "1");
+			Allmap.put("text", "全部");
+			for(int i=0;i<ZTlist.size();i++){
+				Map<String, Object> ZTmap = new HashMap<String, Object>();
+				ZTmap.put("id", ZTlist.get(i).get("LOV_CODE"));
+				ZTmap.put("text", ZTlist.get(i).get("LOV_NAME"));
+				listData.add(ZTmap);
+			}
+			Allmap.put("children", listData);
+			listAllData.add(Allmap);
+			result.put("code", 200);
+			result.put("message", "操作成功!");
+			result.put("data", jsonService.getJsonFromList(listAllData));
+			System.out.println(jsonService.getJsonFromList(listAllData));
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			result.put("code", 400);
+			result.put("message", exp.getMessage());
+		}finally{
+			System.out.println(result);
+			jsonService.writeJson(response, "callback("+result+")");
+		}
+	}	
+	/**
+	 * 
+	 * @Description: 获取有效标识树形下拉框
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(params = "method=getFlagTree",consumes="application/json")
+	public void getFlagTree(HttpServletRequest request,HttpServletResponse response,HttpSession session){
+		JSONObject result=new JSONObject();
+		Map<String, Object> Allmap = new HashMap<String, Object>();
+		List<Map<String, Object>> listData= new ArrayList<Map<String,Object>>();
+		List<Map<String, Object>> listAllData= new ArrayList<Map<String,Object>>();
+		try{
+			String sessionCode = this.commService.getSessionCode(request);
+			Map<String,Object> vender = this.commService.getLoginVender(sessionCode);
+			if(vender == null || vender.size()<1){
+				result.put("code", 300);
+				result.put("message", "用户未登录!");
+				return;
+			}	
+			Map<String,Object> map = BBDate_Service.getGoodFlag();
+			List<Map<String, Object>> BSlist = (List<Map<String, Object>>) map.get("BSlist");
+			Allmap.put("id", "");
+			Allmap.put("text", "全部");
+			for(int i=0;i<BSlist.size();i++){
+				Map<String, Object> BSmap = new HashMap<String, Object>();
+				BSmap.put("id", BSlist.get(i).get("LOV_CODE"));
+				BSmap.put("text", BSlist.get(i).get("LOV_NAME"));
+				listData.add(BSmap);
+			}
+			Allmap.put("children", listData);
+			listAllData.add(Allmap);
+			result.put("code", 200);
+			result.put("message", "操作成功!");
+			result.put("data", jsonService.getJsonFromList(listAllData));
+			System.out.println(jsonService.getJsonFromList(listAllData));
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			result.put("code", 400);
+			result.put("message", exp.getMessage());
+		}finally{
+			System.out.println(result);
+			jsonService.writeJson(response, "callback("+result+")");
+		}
+	}	
+	
+	
+	/**
+	 * 
+	 * @Description: 获取品牌下拉树框
+	 * @author YH_ding 
+	 * @Created 2016-9-18上午10:13:14
+	 * @param request
+	 * @param response
+	 * @param session
+	 */
+	@RequestMapping(params = "method=getBrandTree",consumes="application/json")
+	public void getBrandTree(HttpServletRequest request,HttpServletResponse response,HttpSession session){
+		JSONObject result=new JSONObject();
+		Map<String, Object> Allmap = new HashMap<String, Object>();
+		List<Map<String,Object>> list =new ArrayList<Map<String,Object>>();
+		List<Map<String,Object>> blist =new ArrayList<Map<String,Object>>();
+		
+		try{
+			String sessionCode = this.commService.getSessionCode(request);
+			Map<String,Object> vender = this.commService.getLoginVender(sessionCode);
+			if(vender == null || vender.size()<1){
+				result.put("code", 300);
+				result.put("message", "用户未登录!");
+				return;
+			}
+			String venderCode = (String) vender.get("VENDER_CODE");
+			List<Map<String,Object>> regionList =new ArrayList<Map<String,Object>>();
+			regionList = BBDate_Service.get_brand(venderCode);
+			if(regionList.size()>0){
+				Allmap.put("id", "1");
+				Allmap.put("text", "全部");
+				for(int i=0;i<regionList.size();i++){
+					List<Map<String, Object>> ZList= new ArrayList<Map<String,Object>>();
+					Map<String, Object> map = new HashMap<String, Object>();
+					map.put("id", regionList.get(i).get("brandid"));
+					map.put("text", regionList.get(i).get("brand"));				
+					list.add(map);
+				}
+				Allmap.put("children", list);
+				blist.add(Allmap);
+			}
+			result.put("code", 200);
+			result.put("message", "操作成功!");
+			result.put("data", jsonService.getJsonFromList(blist));
+			System.out.println(jsonService.getJsonFromList(blist));
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			result.put("code", 400);
+			result.put("message", exp.getMessage());
+		}finally{
+			System.out.println(result);
+			jsonService.writeJson(response, "callback("+result+")");
+		}
+	}
+	/**
+	 * 获取数据服务菜单
+	 * @param request
+	 * @param response
+	 * @param session
+	 */
+	@SuppressWarnings("unchecked")
+	@RequestMapping(params = "method=getMenu",consumes="application/json")
+	public void getMenu(HttpServletRequest request,HttpServletResponse response,HttpSession session){
+		JSONObject result=new JSONObject();
+		String parResult="";
+		String chilResult="";
+		try{
+			String sessionCode = this.commService.getSessionCode(request);
+			Map<String,Object> vender = this.commService.getLoginVender(sessionCode);
+			if(vender == null || vender.size()<1){
+				result.put("code", 300);
+				result.put("message", "用户未登录!");
+				return;
+			}
+			parResult = BBDate_Service.getParMenu();
+			chilResult = BBDate_Service.getChilMenu();
+			result.put("code", 200);
+			result.put("message", "操作成功!");
+			result.put("listPar", parResult);
+			result.put("listChil", chilResult);
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			result.put("code", 400);
+			result.put("message", exp.getMessage());
+		}finally{
+			System.out.println(result.toJSONString());
+//			jsonService.writeJson(response,result.toJSONString());
+			jsonService.writeJson(response,"callback("+result.toJSONString()+")");
+		}
+	}	
+}
+

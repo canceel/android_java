@@ -1,0 +1,195 @@
+package com.yh.vssService.comm.dao;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * 
+ * 查询报表下拉数据
+ * 
+ * @author <a href="mailto:741161260@qq.com">YH_ding</a>
+ *
+ * @version Revision: 1.0  Date: 2016-9-18 下午2:05:29 
+ *
+ */
+@Repository
+public class BBDate_Dao {
+	static Logger log = Logger.getLogger(BBDate_Dao.class);
+	@Autowired
+	private SqlSessionTemplate sqlSessionTemplate;
+	
+	/**
+	 * 
+	 * @Description: 获取门店数据
+	 * @author YH_ding 
+	 * @Created 2016-9-18下午2:05:25
+	 * @param param
+	 * @return
+	 * @throws Exception
+	 */
+	@Transactional(readOnly = true)
+	public List<Map<String,Object>> get_MD(Map<String,Object> param) throws Exception {
+		List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+		HashMap<String,Object> hmap = new HashMap<String,Object>();
+		try {
+			list = sqlSessionTemplate.selectList("getBBDate.get_MD");
+			return list;
+		} catch (Exception exp) {
+			log.error(exp);
+			throw exp;
+		}  
+	}
+	/**
+	 * 
+	 * @Description: 获取大区数据
+	 * @author YH_ding 
+	 * @Created 2016-9-18下午2:06:24
+	 * @param param
+	 * @return
+	 * @throws Exception
+	 */
+	@Transactional(readOnly = true)
+	public List<Map<String,Object>> get_DQ(Map<String,Object> param) throws Exception {
+		List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+		HashMap<String,Object> hmap = new HashMap<String,Object>();
+		try {
+			//hmap.put("VENDER_CODE", venderCode);
+			//hmap.put("SHOP_ID", shopId);
+			list = sqlSessionTemplate.selectList("getBBDate.get_DQ");
+			return list;
+		} catch (Exception exp) {
+			log.error(exp);
+			throw exp;
+		}  
+	}
+	
+	/**
+	 * 
+	 * @Description: 获取供应商数据
+	 * @author YH_ding 
+	 * @Created 2016-9-18下午2:06:24
+	 * @param param
+	 * @return
+	 * @throws Exception
+	 */
+	@Transactional(readOnly = true)
+	public List<Map<String,Object>> get_vender(Map<String,Object> param) throws Exception {
+		List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+		try {
+			list = sqlSessionTemplate.selectList("getBBDate.get_vender",param);
+			return list;
+		} catch (Exception exp) {
+			log.error(exp);
+			throw exp;
+		}  
+	}
+	/**
+	 * 获取商品状态
+	 * @param param
+	 * @return
+	 * @throws Exception 
+	 */
+	@Transactional(readOnly = true)
+	public List<Map<String, Object>> getGoodStatus() throws Exception {
+		List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+		try {
+			list = sqlSessionTemplate.selectList("getBBDate.getGoodStatus");
+			return list;
+		} catch (Exception exp) {
+			log.error(exp);
+			throw exp;
+		}  
+	}
+	/**
+	 * 获取商品的有效标识
+	 * @return
+	 * @throws Exception 
+	 */
+	@Transactional(readOnly = true)
+	public List<Map<String, Object>> getGoodFlag() throws Exception {
+		List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+		try {
+			list = sqlSessionTemplate.selectList("getBBDate.getGoodFlag");
+			return list;
+		} catch (Exception exp) {
+			log.error(exp);
+			throw exp;
+		}  
+	}
+	
+	/**
+	 * 获取商品类型
+	 * @return
+	 * @throws Exception 
+	 */
+	@Transactional(readOnly = true)
+	public List<Map<String, Object>> getGoodType() throws Exception {
+		List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+		try {
+			list = sqlSessionTemplate.selectList("getBBDate.getGoodType");
+			return list;
+		} catch (Exception exp) {
+			log.error(exp);
+			throw exp;
+		}  
+	}
+	/**
+	 * 获取供应商的树形下拉框
+	 * @param hmap
+	 * @return
+	 * @throws Exception 
+	 */
+	public List<Map<String, Object>> getVenderTree(HashMap<String, Object> hmap) throws Exception {
+		List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+		try {
+			list = sqlSessionTemplate.selectList("getBBDate.getVenderTree",hmap);
+			return list;
+		} catch (Exception exp) {
+			log.error(exp);
+			throw exp;
+		}  
+	}
+	/**
+	 * 获取数据服务菜单栏(父)
+	 * @return
+	 * @throws Exception 
+	 */
+	public List<Map<String, Object>> getParMenu() throws Exception {
+		List<Map<String,Object>> listPar = new ArrayList<Map<String,Object>>();
+		Map<String, Object> map = new HashMap<String, Object>();
+		try {
+			//获取父级菜单
+			listPar = sqlSessionTemplate.selectList("getBBDate.getMenuPar");			
+			return listPar;
+		} catch (Exception exp) {
+			log.error(exp);
+			throw exp;
+		}  
+	}
+	/**
+	 * 获取数据服务菜单栏(子)
+	 * @return
+	 * @throws Exception 
+	 */
+	public List<Map<String, Object>> getChilMenu() throws Exception {
+		List<Map<String,Object>> listChil = new ArrayList<Map<String,Object>>();
+		Map<String, Object> map = new HashMap<String, Object>();
+		try {
+			//获取子级菜单
+			listChil = sqlSessionTemplate.selectList("getBBDate.getMenuChil");
+			return listChil;
+		} catch (Exception exp) {
+			log.error(exp);
+			throw exp;
+		}  
+	}
+}

@@ -1,0 +1,29 @@
+package com.allipper.common.service.comm.utils;
+
+public class StringUtil {
+	public static String toCamel(String sourceStr){
+		if(sourceStr==null)
+			return null;
+		String [] strArray = (sourceStr.toLowerCase()).split("_");
+		int length = strArray.length;
+		if(length==0)
+			return sourceStr;
+		StringBuffer sb_destStr = new StringBuffer();
+		for(int i=0;i<length;i++){
+			if(i==0)
+				sb_destStr.append(strArray[i]);
+			else
+				sb_destStr.append(startWithUpper(strArray[i]));
+
+		}
+		return sb_destStr.toString();
+	}
+
+	public static String startWithUpper(String sourceStr){
+		  return sourceStr.replaceFirst(""+sourceStr.charAt(0), ""+(char)(sourceStr.charAt(0)-32));
+	}
+	public static void main(String[] args) {
+		String s = toCamel("FUCK_maNNN_ddd");
+		System.out.println(s);
+	}
+}

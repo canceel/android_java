@@ -1,0 +1,108 @@
+package com.yh.vssService.comm.dao;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+@Repository
+@Transactional
+public class CommDao {
+	@Autowired
+	private SqlSessionTemplate sqlSessionTemplate;
+	
+	static Logger log=Logger.getLogger(CommDao.class);
+	
+	//根据appId从数据库中获取token
+	@SuppressWarnings("finally")
+	@Transactional(readOnly=true)
+	public List<Map<String, Object>> getSignToken(String appId) {
+		Map<String,Object> hmap = new HashMap<String, Object>();
+		List<Map<String,Object>> list=null;
+		try{
+			if(appId!=null&&!"".equals(appId)){
+				hmap.put("CON_NAME", appId);
+			}
+			list = sqlSessionTemplate.selectList("comm.getSignToken", hmap);
+		}catch(Exception e){
+			log.error(e.getMessage());
+		}finally{
+			return list;	
+		}
+	}
+	//根据appId更新token值
+	public void updateSignToken(String appId, String signToken) throws Exception {
+		Map<String,Object> hmap = new HashMap<String, Object>();
+		try{
+			if(appId!=null&&!"".equals(appId)){
+				hmap.put("CON_NAME", appId);
+			}
+			if(signToken!=null&&!"".equals(signToken)){
+				hmap.put("CON_VALUE", signToken);
+			}
+			sqlSessionTemplate.update("comm.updateSignToken", hmap);
+		}catch(Exception e){
+			log.error(e.getMessage());
+			throw e;
+		}	
+	}
+	
+	//使用日志记录
+	public void writeLog(String loginId, String moduleCode,String appId,String type) throws Exception {
+		Map<String,Object> hmap = new HashMap<String, Object>();
+		try{
+			if(loginId!=null&&!"".equals(loginId)){
+				hmap.put("LOGINID", loginId);
+			}
+			if(moduleCode!=null&&!"".equals(moduleCode)){
+				hmap.put("MODULE_CODE", moduleCode);
+			}
+			if(appId!=null&&!"".equals(appId)){
+				hmap.put("APP_ID", appId);
+			}
+			if(type!=null&&!"".equals(type)){
+				hmap.put("TYPE", type);
+			}
+			sqlSessionTemplate.update("comm.writeLog", hmap);
+		}catch(Exception e){
+			log.error(e.getMessage());
+			throw e;
+		}	
+	}
+	
+	/**
+	 * 
+	 * @Description: 查询LOV值
+	 * @author YH_ding 
+	 * @Created 2016-9-1上午9:01:31
+	 * @param type
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("finally")
+	@Transactional(readOnly=true)
+	public List<Map<String,Object>> getLov(String type)throws Exception{
+		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+		HashMap<String, Object> ohmap = new HashMap<String, Object>();
+		try{
+			if(type!=null&&!"".equals(type)){
+				ohmap.put("LOV_TYPE", type);
+			}
+			list = sqlSessionTemplate.selectList("comm.getLov", ohmap);
+		}catch(Exception exp){
+			log.error(exp);
+			exp.printStackTrace();
+		}finally{
+			return list;
+		}
+	}
+	public List<Map<String, Object>> getTokenId(Map<String, Object> param) throws Exception{
+		return this.sqlSessionTemplate.selectList("comm.getVenderUserList",param);
+	}
+}

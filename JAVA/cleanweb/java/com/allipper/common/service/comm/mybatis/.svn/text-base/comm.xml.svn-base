@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="comm">
+    <select id="getSignToken" parameterType="java.util.HashMap" resultType="hashmap" useCache="false">
+        SELECT
+        A.CON_VALUE,
+        TO_CHAR(A.UPDATE_TIME,'YYYY-MM-DD HH24:MI:SS') UPDATE_TIME,
+        B.CON_VALUE SESSION_TIME_OUT,
+        C.CON_VALUE TOKEN_TIME_OUT,
+        D.CON_VALUE SYSCODE,
+        E.CON_VALUE SYSMESSAGE
+        FROM
+        CONFIGS A,CONFIGS B,CONFIGS C,CONFIGS D,CONFIGS E
+        <trim prefix="where" prefixOverrides="and |or " suffixOverrides="">
+            <if test="CON_NAME!= null and CON_NAME!=''">
+                AND A.CON_NAME =#{CON_NAME,javaType=String,jdbcType=VARCHAR}
+            </if>
+	            AND B.CON_NAME = 'SESSION_TIME_OUT'
+	            AND C.CON_NAME= 'TOKEN_TIME_OUT'
+	            AND D.CON_NAME='SYSCODE'
+	            AND E.CON_NAME='SYSMESSAGE'
+        </trim>
+    </select>
+
+    <update id="updateSignToken" parameterType="java.util.HashMap" flushCache="false">
+        UPDATE CONFIGS
+        <trim prefix="set" prefixOverrides="" suffixOverrides=",">
+            <if test="CON_VALUE != null and CON_VALUE != ''">
+                CON_VALUE = #{CON_VALUE,javaType=String,jdbcType=VARCHAR},
+            </if>
+	        UPDATE_TIME = SYSDATE
+        </trim>
+        <trim prefix="where" prefixOverrides="and |or " suffixOverrides="">
+            <if test="CON_NAME != null and CON_NAME != ''">
+                and CON_NAME = #{CON_NAME,javaType=String,jdbcType=VARCHAR}
+            </if>
+        </trim>
+    </update>
+    
+    <insert id="writeLog" parameterType="java.util.HashMap" flushCache="false">
+        insert into LOG_INFO
+		(
+		LOGID,
+		<trim prefix="" prefixOverrides="" suffixOverrides="," >
+	        <if test="LOGINID != null and LOGINID != ''">
+	            LOGINID,
+	        </if>
+	        <if test="MODULE_CODE != null and MODULE_CODE != ''">
+	            MODULE_CODE,
+	        </if>
+	        <if test="TYPE != null and TYPE != ''">
+	            TYPE,
+	        </if>
+	        <if test="APP_ID != null and APP_ID != ''">
+	            APP_ID,
+	        </if>
+            CREATE_TIME,
+		</trim>
+		)
+		values
+		(
+		TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')||SEQ_LOG.NEXTVAL,
+	    <trim prefix="" prefixOverrides="" suffixOverrides=",">
+	        <if test="LOGINID != null and LOGINID != ''">
+	            #{LOGINID,javaType=String,jdbcType=NVARCHAR},
+	        </if>
+	        <if test="MODULE_CODE != null and MODULE_CODE != ''">
+	            #{MODULE_CODE,javaType=String,jdbcType=NVARCHAR},
+	        </if>
+	        <if test="TYPE != null and TYPE != ''">
+	            #{TYPE,javaType=String,jdbcType=NVARCHAR},
+	        </if>
+	        <if test="APP_ID != null and APP_ID != ''">
+	            #{APP_ID,javaType=String,jdbcType=NVARCHAR},
+	        </if>
+            sysdate,
+	    </trim>
+		)
+    </insert>
+      
+    <!-- 根据主键查询LOV值 -->
+	<select id="getLov" parameterType="java.util.HashMap" resultType="hashmap">
+		select 
+		<trim prefix="" prefixOverrides="" suffixOverrides=",">
+			LOV_TYPE lovType,
+			LOV_CODE id,
+			LOV_NAME text,
+			PARENT_CODE parentCode,
+		</trim>
+		from LOV_INFO A
+		<trim prefix="where" prefixOverrides="and |or " suffixOverrides="">
+			<if test="LOV_TYPE != null and LOV_TYPE !=''">
+				and A.LOV_TYPE = #{LOV_TYPE,javaType=String,jdbcType=NVARCHAR}
+			</if>
+		</trim>
+	</select>
+	
+	<select id="getVenderUserList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		SELECT VL.VENDER_CODE,VL.ID,VL.ID_TYPE,VL.PHONE,VL.PASSWORD,VL.ID_NUMBER,VL.REGISTER_CHANNEL,VL.ID_STATUS,VL.NICKNAME,VL.CREATE_BY,VL.UPDATE_BY,
+		TO_CHAR(VL.CREATE_TIME,'YYYY-MM-DD HH24:MI:SS') AS CREATE_TIME,TO_CHAR(VL.UPDATE_TIME,'YYYY-MM-DD HH24:MI:SS') AS UPDATE_TIME,VI.VENDER_NAME,
+		VL.TOKENID,TO_CHAR(VL.TOKENTIME,'YYYY-MM-DD HH24:MI:SS') AS TOKENTIME
+		FROM VENDER_LOGIN VL
+		LEFT JOIN VENDER_INFO VI ON VL.VENDER_CODE=VI.VENDER_CODE
+		WHERE 1=1
+		<if test="vender_code !=null and vender_code !=''">
+			AND VL.VENDER_CODE=#{vender_code,javaType=String,jdbcType=VARCHAR}
+		</if>
+		<if test="vender_loginid !=null and vender_loginid !=''">
+			AND VL.ID=#{vender_loginid,javaType=String,jdbcType=VARCHAR}
+		</if>
+		<if test="id_type !=null and id_type !=''">
+			AND VL.ID_TYPE=#{id_type,javaType=String,jdbcType=VARCHAR}
+		</if>
+		<if test="mobile_phone !=null and mobile_phone !=''">
+			AND VL.PHONE=#{mobile_phone,javaType=String,jdbcType=VARCHAR}
+		</if>
+		<if test="id_number !=null and id_number !=''">
+			AND VL.ID_NUMBER=#{id_number,javaType=String,jdbcType=VARCHAR}
+		</if>
+		<if test="id_status !=null and id_status !=''">
+			AND VL.ID_STATUS=#{id_status,javaType=String,jdbcType=VARCHAR}
+		</if>
+		<if test="channel !=null and channel !=''">
+			AND VL.CHANNEL=#{channel,javaType=String,jdbcType=VARCHAR}
+		</if>
+		<if test="nickname !=null and nickname !=''">
+			AND VL.NICKNAME LIKE '%'||#{nickname,javaType=String,jdbcType=VARCHAR}'||%'
+		</if>
+		<if test="create_by !=null and create_by !=''">
+			AND VL.CREATE_BY=#{create_by,javaType=String,jdbcType=VARCHAR}
+		</if>
+	</select>
+</mapper>

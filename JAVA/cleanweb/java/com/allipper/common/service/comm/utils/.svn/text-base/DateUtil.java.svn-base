@@ -1,0 +1,258 @@
+package com.yh.vssService.comm.utils;
+
+import java.text.DateFormat;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
+
+import org.apache.log4j.Logger;
+
+/**
+ * 日期工具类
+ * 
+ * @author chenkusay
+ * 
+ */
+public class DateUtil {
+	static Logger log = Logger.getLogger(DateUtil.class);
+	/**
+	 * 获取系统日期 格式：yyyyMMdd
+	 * 
+	 * @return
+	 */
+	public static String getSimpleDate() {
+		Date date = new Date();
+		DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+		return dateFormat.format(date);
+	}
+	/**
+	 * 获取系统日期 格式：MM-dd
+	 * 
+	 * @return
+	 */
+	public static String getSimpleDateMMdd() {
+		Date date = new Date();
+		DateFormat dateFormat = new SimpleDateFormat("MM-dd");
+		return dateFormat.format(date);
+	}
+
+	/**
+	 * 获取系统日期n天之前(后)日期 格式：yyyy-MM-dd
+	 * 
+	 * @return
+	 */
+	public static String getSimpleFormatDate(int n) {
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar c = Calendar.getInstance();
+		c.add(Calendar.DATE, n);
+		return dateFormat.format(c.getTime());
+	}
+
+	/**
+	 * @description 获取n个月前(后)的日期 格式:yyyy-MM-dd
+	 * @param n
+	 * @return
+	 */
+	public static String getMonthBefore(int n) {
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar c = Calendar.getInstance();
+		int month = Calendar.MONTH;
+		// int year = Calendar.YEAR;
+		int x = 0;// 变化年数
+		int y;// 变化月份
+
+		if (month < n) {
+			// 如果是12的倍数以上
+			if (n / 12 > 0) {
+				// 如果求余的结果都大于现在的月份
+				if (n % 12 > month) {
+					x = n / 12 + 1;
+					y = n % 12 - 12;
+				} else if (n % 12 == month) {
+					x = n / 12 + 1;
+					y = month - 12;
+				} else {
+					x = n / 12;
+					y = n % 12;
+				}
+			} else {
+				x = 1;
+				y = n - 12;
+			}
+
+		} else {
+			y = n;
+		}
+		c.roll(Calendar.YEAR, -x);
+		c.roll(Calendar.MONTH, -y);
+		return dateFormat.format(c.getTime());
+	}
+
+	/**
+	 * 获取系统时间<br/>
+	 * 时间格式为:yyyy-MM-dd HH:mm:ss
+	 * 
+	 * @return String
+	 */
+	public static String getSysDateTime() {
+		Date date = new Date();
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		return dateFormat.format(date);
+	}
+
+	/**
+	 * 输出yyyy年mm月dd日格式日期
+	 * 
+	 * @param date
+	 * @return String
+	 */
+	public static String getTimeFormat(String date) {
+		java.util.Date date1 = java.sql.Date.valueOf(date);
+		DateFormat dateFormat = new SimpleDateFormat("yyyy年MM月dd日");
+		return dateFormat.format(date1);
+	}
+
+	/**
+	 * 输出yyyy年mm月 dd日格式日期
+	 * 
+	 * @param longdate
+	 * @return String
+	 */
+	public static String getFullDateFormat(String longdate) {
+		String[] date = longdate.split(" ");
+
+		java.util.Date date2 = java.sql.Date.valueOf(date[0]);
+		DateFormat longDateFormat = DateFormat.getDateInstance(DateFormat.LONG);
+		return longDateFormat.format(date2);
+
+	}
+
+	/**
+	 * 输出yyyy年MM月dd 日 时分秒格式日期
+	 * 
+	 * @param longdate
+	 * @return String
+	 */
+	public static String getFullDateTimeFormat(String longdate) {
+		String[] date = longdate.split(" ");
+
+		java.util.Date date2 = java.sql.Date.valueOf(date[0]);
+		String[] time = date[1].split(":");
+		String timeinfo = time[0] + "时" + time[1] + "分" + time[2] + "秒";
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd 日");
+		return sdf.format(date2) + " " + timeinfo;
+	}
+
+	/**
+	 * 输出yyyyMMddHHmmss格式的日期
+	 * 
+	 * @return String
+	 */
+	public static String getTimeStamp() {
+		Date date = new Date();
+		DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+		return dateFormat.format(date);
+	}
+
+	/**
+	 * 比较两个日期相差的天数
+	 * 
+	 * @return long
+	 */
+	public static long diffTimeForDay(String compareTime, String sysTime) {
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		long days = 0;
+		try {
+			Date d1 = dateFormat.parse(compareTime);
+
+			Date d2 = dateFormat.parse(sysTime);
+
+			long diff = d1.getTime() - d2.getTime();
+
+			days = diff / (1000 * 60 * 60 * 24);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return days;
+	}
+
+	/**
+	 * 返回当前时间 格式：HHmmss
+	 * 
+	 * @return
+	 */
+	public static String getCurrentTime() {
+		Date date = new Date();
+		DateFormat dateFormat = new SimpleDateFormat("HHmmss");
+		return dateFormat.format(date);
+	}
+
+	/*
+	 * 
+	 * 获取当前时间之前或之后几小时 hour
+	 */
+
+	public static String getTimeByHour(int hour) {
+
+		Calendar calendar = Calendar.getInstance();
+
+		calendar.set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.HOUR_OF_DAY)
+				+ hour);
+
+		return new SimpleDateFormat("yyyyMMddHHmmss")
+				.format(calendar.getTime());
+
+	}
+	/**
+	 * 当前时间-传入字符串时间 相差的秒数
+	 * @param date_str
+	 * @return
+	 * @throws Exception
+	 */
+	public static long differSecond(String date_str) throws Exception{
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		long days=0;
+		try {
+			Date d1 = new Date();
+			Date d2 = dateFormat.parse(date_str);
+			long diff = d1.getTime() - d2.getTime();//这样得到的差值是微秒级别
+			days = diff / 1000;
+		} catch (Exception e) {
+			 e.printStackTrace();
+			 throw e;
+		}
+		return days;
+	}
+	/**
+	 * now-传入字符串时间 相差的秒数
+	 * @param date_str
+	 * @return
+	 * @throws Exception
+	 */
+	public static long differSecond(String now,String date_str) throws Exception{
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		long days=0;
+		try {
+			Date d1 = dateFormat.parse(now);
+			Date d2 = dateFormat.parse(date_str);
+			long diff = d1.getTime() - d2.getTime();//这样得到的差值是微秒级别
+			days = diff / 1000;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return days;
+	}
+	
+	public static void main(String[] args) {
+		try {
+			System.out.println(DateUtil.differSecond("2016-08-04 10:33:37","2016-08-04 09:07:44"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}

@@ -1,0 +1,55 @@
+package com.yh.vssService.comm.dao;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * 
+ * 查询旧vss品牌数据
+ * 
+ * @author <a href="mailto:741161260@qq.com">YH_ding</a>
+ *
+ * @version Revision: 1.0  Date: 2016-9-18 上午10:23:05 
+ *
+ */
+@Repository
+@Transactional("informixManager")
+public class BBDate_Informix_Dao {
+	static Logger log = Logger.getLogger(BBDate_Informix_Dao.class);
+	@Autowired
+	@Qualifier("informixsqlSessionTemplate")
+	private SqlSessionTemplate sqlSessionTemplate;
+	
+	
+	/**
+	 * 
+	 * @Description: 获取品牌数据
+	 * @author YH_ding 
+	 * @Created 2016-9-18下午2:06:48
+	 * @param param
+	 * @return
+	 * @throws Exception
+	 */
+	@Transactional(readOnly = true)
+	public List<Map<String,Object>> get_brand(String venderCode) throws Exception {
+		List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+		HashMap<String,Object> hmap = new HashMap<String,Object>();
+		try {
+			hmap.put("venderCode", venderCode);
+			list = sqlSessionTemplate.selectList("BBDate_Informix.get_brand",hmap);
+			return list;
+		} catch (Exception exp) {
+			log.error(exp);
+			throw exp;
+		}  
+	}
+}

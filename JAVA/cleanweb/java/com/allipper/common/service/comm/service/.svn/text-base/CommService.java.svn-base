@@ -1,0 +1,452 @@
+package com.yh.vssService.comm.service;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+
+import net.sf.ehcache.Element;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.yh.vssService.comm.dao.CommDao;
+import com.yh.vssService.comm.dao.SpringRedisDao;
+import com.yh.vssService.comm.utils.DateUtil;
+import com.yh.vssService.comm.utils.JsonService;
+import com.yh.vssService.comm.utils.JsonUtil;
+import com.yh.vssService.comm.utils.MD5;
+
+@Service
+public class CommService {
+	static Logger log=Logger.getLogger(CommService.class);
+	@Autowired
+	private CommDao commDao;
+	@Autowired
+	private SpringRedisDao redisDao;
+	@Autowired
+	private JsonService jsonServcie;
+	public String getSessionCode(HttpServletRequest request){
+		Cookie cookies[]=request.getCookies();
+        String sessionCode = "";
+        if(cookies!=null){
+        	Cookie readcookie=null;
+            for(int i=0;i<cookies.length;i++){
+            	 readcookie=cookies[i];
+            	 if(readcookie.getName().equals("sessionCode")){
+            		 sessionCode=readcookie.getValue();
+            		 break;
+            	 }
+            }
+        }
+		return sessionCode;
+	}
+	public Map<String,Object> getLoginVender(String sessionCode){
+		Map<String, Object> venderMap = new HashMap<String, Object>();
+		try {
+			String vender_str = this.redisDao.get_str("sessionCode:"+sessionCode);
+			if(vender_str!=null && !vender_str.equals("")){
+				venderMap=JsonUtil.jsonToMap(vender_str);
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			e.printStackTrace();
+		}
+		return venderMap;
+	}
+	public Map<String,Object> getSignToken(String appId) throws Exception{
+		String signToken="";
+		long timeout=7*24*60*60*1000;
+		Map<String, Object> tokenMap =new HashMap<String, Object>();
+		try{
+			SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			String nowTime = DateUtil.getSysDateTime();
+			Date d_nowTime = sdf.parse(nowTime);
+			//取缓存数据
+			String appIdJson_str = this.redisDao.get_str("appId:"+appId);
+			//缓存为空时
+			if(appIdJson_str==null || appIdJson_str.equals("")){
+				//获取数据库signToken
+				List<Map<String,Object>> tokenList = commDao.getSignToken(appId);				
+				if(tokenList.size()>0){
+					Map<String, Object> map =new HashMap<String, Object>();
+					map.put("signToken", tokenList.get(0).get("CON_VALUE"));
+					map.put("tokenTime", tokenList.get(0).get("UPDATE_TIME"));
+					map.put("sessionTimeOut", tokenList.get(0).get("SESSION_TIME_OUT"));
+					map.put("tokenTimeOut", tokenList.get(0).get("TOKEN_TIME_OUT"));
+					map.put("syscode", tokenList.get(0).get("SYSCODE"));
+					map.put("sysmessage", tokenList.get(0).get("SYSMESSAGE"));
+					this.redisDao.addKVExpire("appId:"+appId,this.jsonServcie.getJsonFromMap(map),24*60*60);
+					tokenMap=map;
+				}else{
+					throw new Exception("没有该appId！") ;
+				}
+			}else{//缓存存在
+				//判断缓存时间
+				tokenMap = JsonUtil.jsonToMap(appIdJson_str);
+				signToken = tokenMap.get("signToken").toString();
+				String tokenTime = tokenMap.get("tokenTime").toString();
+				String tokenTimeOut = tokenMap.get("tokenTimeOut").toString();
+				String syscode = tokenMap.get("syscode").toString();
+				String sysmessage = tokenMap.get("sysmessage").toString();
+				Date d_tokenTime = sdf.parse(tokenTime);
+				int tokenTimeOut_Int = Integer.parseInt(tokenTimeOut);
+				//如果超过1天 86400，重新获取accesstoken
+				if((d_nowTime.getTime()-d_tokenTime.getTime())>tokenTimeOut_Int){
+					//生成新的signToken
+					signToken = UUID.randomUUID().toString();
+					//保存数据库
+					commDao.updateSignToken(appId,signToken);
+					//更新缓存
+					Map<String, Object> map =new HashMap<String, Object>();
+					map.put("signToken", signToken);
+					map.put("tokenTime", nowTime);
+					map.put("sessionTimeOut", timeout);
+					map.put("tokenTimeOut", tokenTimeOut);
+					map.put("syscode", syscode);
+					map.put("sysmessage", sysmessage);
+					this.redisDao.addKVExpire("appId:"+appId,this.jsonServcie.getJsonFromMap(map),24*60*60);
+					tokenMap=map;
+				}else{//缓存未超时
+					tokenMap = JsonUtil.jsonToMap(appIdJson_str);
+				}
+			}
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			throw new Exception(exp.getMessage());
+		}
+		return tokenMap;
+	}
+/*	@SuppressWarnings({ "unchecked" })
+	public Map<String,Object> getSignToken_bak(String appId) throws Exception{
+		String signToken="";
+		long timeout=7*24*60*60*1000;
+		Map<String, Object> tokenMap =new HashMap<String, Object>();
+		try{
+			SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			String nowTime = DateUtil.getSysDateTime();
+			Date d_nowTime = sdf.parse(nowTime);
+			//取缓存数据
+			Element toeknELement = Constants.DICTCACHE.get(appId);
+			//缓存为空时
+			if(toeknELement==null){
+				//获取数据库signToken
+				List<Map<String,Object>> tokenList = commDao.getSignToken(appId);
+				
+//				List<Map<String,Object>> tokenList = new ArrayList<Map<String,Object>>();
+//				Map<String, Object> tokenMap11 =new HashMap<String, Object>();
+//				tokenMap11.put("ITEMVALUE", "111222333444555666");
+//				tokenMap11.put("CREATE_TIME", nowTime);
+//				tokenMap11.put("SESSION_TIME_OUT", timeout);
+//				tokenList.add(tokenMap11);
+				
+				if(tokenList.size()>0){
+					Map<String, Object> map =new HashMap<String, Object>();
+					map.put("signToken", tokenList.get(0).get("CON_VALUE"));
+					map.put("tokenTime", tokenList.get(0).get("UPDATE_TIME"));
+					map.put("sessionTimeOut", tokenList.get(0).get("SESSION_TIME_OUT"));
+					Element element =new Element(appId,map);
+					Constants.DICTCACHE.put(element);
+					toeknELement = Constants.DICTCACHE.get(appId);
+				}else{
+					throw new Exception("没有该appId！") ;
+				}
+			}
+			//判断缓存时间
+			tokenMap = (Map<String, Object>)toeknELement.getValue();
+			signToken = tokenMap.get("signToken").toString();
+			String tokenTime = tokenMap.get("tokenTime").toString();
+			
+			Date d_tokenTime = sdf.parse(tokenTime);
+			
+			//如果超过1天 86400，重新获取accesstoken
+			if((d_nowTime.getTime()-d_tokenTime.getTime())/1000>86400){
+				//生成新的signToken
+				signToken = UUID.randomUUID().toString();
+				//保存数据库
+				commDao.updateSignToken(appId,signToken);
+				//更新缓存
+				Map<String, Object> map =new HashMap<String, Object>();
+				map.put("signToken", signToken);
+				map.put("tokenTime", nowTime);
+				map.put("sessionTimeOut", timeout);
+				Element element =new Element(appId,map);
+				Constants.DICTCACHE.put(element);
+			}
+			tokenMap = (Map<String, Object>)toeknELement.getValue();
+			return tokenMap;
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			throw new Exception(exp.getMessage());
+		}
+	}
+*/	
+	public Map<String,Object> getSignToken_bak(String appId) throws Exception{
+		String signToken="";
+		long timeout=7*24*60*60*1000;
+		Map<String, Object> tokenMap =new HashMap<String, Object>();
+		try{
+			SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			String nowTime = DateUtil.getSysDateTime();
+			Date d_nowTime = sdf.parse(nowTime);
+			
+			List<Map<String,Object>> tokenList = commDao.getSignToken(appId);
+			if(tokenList.size()>0){
+				tokenMap.put("signToken", tokenList.get(0).get("CON_VALUE"));
+				tokenMap.put("tokenTime", tokenList.get(0).get("UPDATE_TIME"));
+				tokenMap.put("sessionTimeOut", timeout);
+			}else{
+				throw new Exception("没有该appId！") ;
+			}
+			signToken = tokenMap.get("signToken").toString();
+			String tokenTime = tokenMap.get("tokenTime").toString();
+			
+			Date d_tokenTime = sdf.parse(tokenTime);
+			
+			//如果超过1天 86400，重新获取accesstoken
+			if((d_nowTime.getTime()-d_tokenTime.getTime())/1000>86400){
+				//生成新的signToken
+				signToken = UUID.randomUUID().toString();
+				//保存数据库
+				commDao.updateSignToken(appId,signToken);
+				//更新缓存
+				tokenMap.put("signToken", signToken);
+				tokenMap.put("tokenTime", nowTime);
+			}
+			return tokenMap;
+		}catch(Exception exp){
+			exp.printStackTrace();
+			log.error(exp);
+			throw new Exception(exp.getMessage());
+		}
+	}
+	/**
+	 * 未登录调用接口验证签名
+	 * @param request
+	 * @return
+	 */
+	@SuppressWarnings("finally")
+	public Map<String,Object> interfaceCheck(HttpServletRequest request){
+		Map<String, Object> result =new HashMap<String, Object>();
+		try{
+			String appId = request.getParameter("appId");
+			String random = request.getParameter("random");
+			String sign = request.getParameter("sign");
+			String tokenId = request.getParameter("tokenId");
+			String loginId = request.getParameter("loginId");
+			if(appId==null||"".equals(appId)){
+				result.put("code", 300);
+				result.put("message", "传入appId为空!");
+				return result;
+			}
+			if(random==null||"".equals(random)){
+				result.put("code", 300);
+				result.put("message", "传入随机数为空!");
+				return result;
+			}
+			if(random.length()!=6){
+				result.put("code", 300);
+				result.put("message", "传入随机数长度错误!");
+				return result;
+			}
+			if(sign==null||"".equals(sign)){
+				result.put("code", 300);
+				result.put("message", "传入签名为空!");
+				return result;
+			}
+			if(tokenId!=null && !"".equals(tokenId)){
+				if(loginId==null||"".equals(loginId)){
+					result.put("code", 300);
+					result.put("message", "传入登录编号为空!");
+					return result;
+				}
+				Map<String,Object> param = new HashMap<String, Object>();
+				param.put("vender_loginid",loginId);
+				List<Map<String,Object>> userList = this.commDao.getTokenId(param);
+				String tokenId_Sys = (String) userList.get(0).get("TOKENID");
+				if(!tokenId_Sys.equalsIgnoreCase(tokenId)){
+					result.put("code", 444);
+					result.put("message", "您的账号发生变动,请重新登录!");
+					return result;
+				}
+			}
+			
+			//校验参数是否合法
+			Map<String,Object> tokenMap = getSignToken(appId);
+			String signToken = tokenMap.get("signToken").toString();
+			String newSign=MD5.getMD5((appId+random.substring(2, 5)+signToken).getBytes());//取随机数的3-5位，3个值
+			System.out.println("签名："+newSign);
+			if(!sign.equals(newSign)){
+				result.put("code", 999);
+				result.put("message", "签名校验失败!");
+				return result;
+			}
+			result.put("code", 200);
+			result.put("message", "成功！");
+		}catch (Exception e) {
+			e.printStackTrace();
+			log.error(e);
+			result.put("code", 300);
+			result.put("message", e.getMessage());
+		}finally{
+			return result;
+		}
+	}
+	/**
+	 * 已登录调用接口验证签名
+	 * @param request
+	 * @return
+	 */
+	@SuppressWarnings("finally")
+	public Map<String,Object> interfaceCheck_login(HttpServletRequest request){
+		Map<String, Object> result =new HashMap<String, Object>();
+		try{
+			String appId = request.getParameter("appId");
+			String random = request.getParameter("random");
+			String sign = request.getParameter("sign");
+			String tokenId = request.getParameter("tokenId");
+			String loginId = request.getParameter("loginId");
+			if(appId==null||"".equals(appId)){
+				result.put("code", 300);
+				result.put("message", "传入appId为空!");
+				return result;
+			}
+			if(random==null||"".equals(random)){
+				result.put("code", 300);
+				result.put("message", "传入随机数为空!");
+				return result;
+			}
+			if(random.length()!=6){
+				result.put("code", 300);
+				result.put("message", "传入随机数长度错误!");
+				return result;
+			}
+			if(sign==null||"".equals(sign)){
+				result.put("code", 300);
+				result.put("message", "传入签名为空!");
+				return result;
+			}
+			if(tokenId!=null && !"".equals(tokenId)){
+				if(loginId==null||"".equals(loginId)){
+					result.put("code", 300);
+					result.put("message", "传入登录编号为空!");
+					return result;
+				}
+				Map<String,Object> param = new HashMap<String, Object>();
+				param.put("vender_loginid",loginId);
+				List<Map<String,Object>> userList = this.commDao.getTokenId(param);
+				String tokenId_Sys = (String) userList.get(0).get("TOKENID");
+				if(!tokenId_Sys.equalsIgnoreCase(tokenId)){
+					result.put("code", 444);
+					result.put("message", "您在其它设备修改了密码或账户已被冻结!");
+					return result;
+				}
+			}
+			
+			//校验参数是否合法
+			Map<String,Object> tokenMap = getSignToken(appId);
+			String signToken = tokenMap.get("signToken").toString();
+			String newSign=MD5.getMD5((appId+random.substring(2, 5)+signToken).getBytes());//取随机数的3-5位，3个值
+			System.out.println("签名："+newSign);
+			if(!sign.equals(newSign)){
+				result.put("code", 999);
+				result.put("message", "签名校验失败!");
+				return result;
+			}
+			result.put("code", 200);
+			result.put("message", "成功！");
+		}catch (Exception e) {
+			e.printStackTrace();
+			log.error(e);
+			result.put("code", 300);
+			result.put("message", e.getMessage());
+		}finally{
+			return result;
+		}
+	}
+	public void writeLog(String loginId,String moduleCode,String appId,String type) {
+		try{
+			if(loginId==null||"".equals(loginId)){
+				throw new Exception("传入loginId为空!");
+			}
+			if(moduleCode==null||"".equals(moduleCode)){
+				throw new Exception("传入moduleCode为空!");
+			}
+			commDao.writeLog(loginId,moduleCode,appId,type);
+		}catch (Exception e) {
+			e.printStackTrace();
+			log.error(e);
+		}
+	}
+	
+	/**
+	 * 
+	 * @Description: 获取LOV值
+	 * @author YH_ding 
+	 * @Created 2016-9-1上午8:58:24
+	 * @param type
+	 * @return
+	 */
+	@SuppressWarnings("finally")
+	public String getLov(String type){
+		List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+		String lov_str="";
+		Map<String, Object> map=new HashMap<String, Object>();
+		try{
+			//取缓存数据
+			lov_str = this.redisDao.get_str("lov:"+type);
+			if(lov_str ==null || lov_str.equals("")){
+				//缓存没有数据取数据库数据并写入缓存
+				list =  commDao.getLov(type);
+				//map.put("id", "");
+				//map.put("text", "==请选择==");
+				//list.add(0, map);
+				lov_str=this.jsonServcie.getJsonFromList(list);
+				this.redisDao.addKVExpire("lov:"+type,this.jsonServcie.getJsonFromList(list),1800);
+			}
+		}catch(Exception exp){
+			log.error(exp);
+			exp.printStackTrace();
+			throw exp;
+		}finally{
+			return lov_str;
+		}
+	}
+	
+	/**
+	 * 
+	 * @Description: 转换供应商编号
+	 * @author YH_ding 
+	 * @Created 2016-9-1上午8:58:24
+	 * @param type
+	 * @return
+	 */
+	@SuppressWarnings("finally")
+	public String venderCodeSwitch(String venderCode){
+		try{
+			 if(StringUtils.isNumeric(venderCode)){
+				 int leng = venderCode.length();
+				 leng=10-leng;
+				 for(int i=0;i<leng;i++){
+					 venderCode="0"+venderCode;
+				 }
+			 }
+		}catch(Exception exp){
+			log.error(exp);
+			exp.printStackTrace();
+			throw exp;
+		}finally{
+			return venderCode;
+		}
+	}
+}

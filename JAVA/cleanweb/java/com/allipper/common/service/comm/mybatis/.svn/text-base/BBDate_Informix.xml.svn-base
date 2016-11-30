@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BBDate_Informix"> 
+    <select id="get_brand" parameterType="java.util.HashMap"
+		resultType="hashmap" useCache="false">
+		SELECT 
+			a.venderid,max(a.brandid) brandid,a.brandname, 
+			CONCAT(CONCAT(max(a.brandid),'-'),a.brandname) brand
+		FROM vender_brand a
+	where a.venderid=#{venderCode,javaType=String,jdbcType=VARCHAR}
+	group by a.venderid,a.brandname
+
+		
+	<!-- 	
+	select distinct brandid,brandname,
+	CONCAT(CONCAT(brandid,'-'),brandname) brand
+	from vender_brand where venderid=#{venderCode,javaType=String,jdbcType=VARCHAR}  -->
+   </select>
+</mapper>
+

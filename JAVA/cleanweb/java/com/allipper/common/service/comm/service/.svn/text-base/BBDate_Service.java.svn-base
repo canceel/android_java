@@ -1,0 +1,175 @@
+package com.yh.vssService.comm.service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSONObject;
+import com.yh.vssService.comm.dao.SpringRedisDao;
+import com.yh.vssService.comm.dao.BBDate_Dao;
+import com.yh.vssService.comm.dao.BBDate_Informix_Dao;
+import com.yh.vssService.comm.utils.JsonService;
+
+/**
+ * 
+ * 查询报表下拉数据
+ * 
+ * @author <a href="mailto:741161260@qq.com">YH_ding</a>
+ *
+ * @version Revision: 1.0  Date: 2016-9-18 上午10:18:01 
+ *
+ */
+@Service
+public class BBDate_Service {
+	@Autowired
+	private BBDate_Dao BBDate_Dao;
+
+	@Autowired
+	private BBDate_Informix_Dao Infor_Dao;
+	@Autowired
+	private SpringRedisDao redisDao;
+	@Autowired
+	private JsonService jsonService;
+	
+	
+	public Map<String,Object> get_MD(Map<String,Object> param ) throws Exception{
+		List<Map<String,Object>> DQlist =new ArrayList<Map<String,Object>>();
+		List<Map<String,Object>> MDlist =new ArrayList<Map<String,Object>>();
+		Map<String,Object> map =new HashMap<String, Object>();
+		DQlist = BBDate_Dao.get_DQ(param);
+		MDlist = BBDate_Dao.get_MD(param);
+		map.put("DQlist", DQlist);
+		map.put("MDlist", MDlist);
+		
+		return map;
+	
+	}
+	
+	/**
+	 * 
+	 * @Description: 获取品牌下拉数据
+	 * @author YH_ding 
+	 * @Created 2016-9-18下午2:51:25
+	 * @param venderCode
+	 * @return
+	 * @throws Exception
+	 */
+	public List<Map<String,Object>> get_brand(String venderCode) throws Exception{
+		List<Map<String,Object>> list =new ArrayList<Map<String,Object>>();
+		list=Infor_Dao.get_brand(venderCode);
+		return list;
+	
+	}
+	
+	/**
+	 * 
+	 * @Description: 获取供应商数据
+	 * @author YH_ding 
+	 * @Created 2016-9-18下午2:51:25
+	 * @param venderCode
+	 * @return
+	 * @throws Exception
+	 */
+	public List<Map<String,Object>> get_vender(String venderCode) throws Exception{
+		List<Map<String,Object>> list =new ArrayList<Map<String,Object>>();
+		List<Map<String,Object>> list1 =new ArrayList<Map<String,Object>>();
+		HashMap<String,Object> hmap = new HashMap<String,Object>();
+		hmap.put("venderCode", venderCode);
+		hmap.put("parent", "1");
+		list=BBDate_Dao.get_vender(hmap);
+		String type=(String) list.get(0).get("PARENT_CHILD_CD");
+		if("1".equals(type)){	
+			hmap.put("venderCode", venderCode);
+			hmap.put("parent", "2");
+			list1=BBDate_Dao.get_vender(hmap);
+			list1.add(0, list.get(0));
+			return list1;
+		}
+		
+		return list;
+	
+	}
+
+	/**
+	 * 获取商品状态
+	 * @param param
+	 * @return
+	 * @throws Exception 
+	 */
+	public Map<String, Object> getGoodStatus() throws Exception {
+		List<Map<String,Object>> ZTlist =new ArrayList<Map<String,Object>>();
+		Map<String,Object> map =new HashMap<String, Object>();
+		ZTlist = BBDate_Dao.getGoodStatus();
+		map.put("ZTlist",ZTlist);
+		return map;
+	}
+	/**
+	 * 获取商品的有效标识
+	 * @return
+	 */
+	public Map<String, Object> getGoodFlag() throws Exception{
+		List<Map<String,Object>> BSlist =new ArrayList<Map<String,Object>>();
+		Map<String,Object> map =new HashMap<String, Object>();
+		BSlist = BBDate_Dao.getGoodFlag();
+		map.put("BSlist",BSlist);
+		return map;
+	}
+	
+	/**
+	 * 获取商品类型
+	 * @return
+	 */
+	public Map<String, Object> getGoodType() throws Exception{
+		List<Map<String,Object>> BSlist =new ArrayList<Map<String,Object>>();
+		Map<String,Object> map =new HashMap<String, Object>();
+		BSlist = BBDate_Dao.getGoodType();
+		map.put("LXlist",BSlist);
+		return map;
+	}
+	/**
+	 * 获取供应商的树形下拉框
+	 * @param venderCode
+	 * @return
+	 * @throws Exception 
+	 */
+		public List getVenderTree(String venderCode) throws Exception {
+			List<Map<String,Object>> list =new ArrayList<Map<String,Object>>();
+			List<Map<String,Object>> list1 =new ArrayList<Map<String,Object>>();
+			HashMap<String,Object> hmap = new HashMap<String,Object>();
+			hmap.put("venderCode", venderCode);
+			list=BBDate_Dao.getVenderTree(hmap);
+			return list;
+		}
+	/**
+	 * 获取数据服务的菜单栏（父）
+	 * @return
+	 */
+	public String getParMenu() throws Exception{
+		List<Map<String,Object>> list =new ArrayList<Map<String,Object>>();
+		String result =this.redisDao.get_str("menuInfo:dataServerParMeun");
+		if(result == null || "".equals(result)){
+			list= BBDate_Dao.getParMenu();
+			result=jsonService.getJsonFromList(list);
+			this.redisDao.addKVExpire("menuInfo:dataServerParMeun", result, 60*5);
+		}
+		return result;
+	}
+	/**
+	 * 获取数据服务的菜单栏（子）
+	 * @return
+	 */
+	public String getChilMenu() throws Exception{
+		List<Map<String,Object>> list =new ArrayList<Map<String,Object>>();
+		String result =this.redisDao.get_str("menuInfo:dataServerChilMeun");
+		if(result == null || "".equals(result)){
+			list= BBDate_Dao.getChilMenu();
+			result=jsonService.getJsonFromList(list);
+			this.redisDao.addKVExpire("menuInfo:dataServerChilMeun", result, 60*5);
+		}
+		return result;
+	}
+}

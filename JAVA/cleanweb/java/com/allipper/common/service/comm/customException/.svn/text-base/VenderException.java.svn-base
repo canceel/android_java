@@ -1,0 +1,8 @@
+package com.yh.vssService.comm.customException;
+
+@SuppressWarnings("serial")
+public class VenderException extends Exception{
+	public VenderException(String msg){
+		super(msg);  
+	}
+}

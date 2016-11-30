@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module-config>
+	<global-propertys>
+		<property name="defaultPwd" value="88888888"></property>
+		<!-- PI短信接口配置 -->
+		<property name="piuser_SMS" value="glzx_p"></property>
+		<property name="pipwd_SMS" value="B5*J%kfj5cr!l^"></property>
+		<property name="SMS_SERVER" value="WLWX_O"></property>
+		<property name="USER_ID" value="glzx_p"></property>
+		<property name="CONTENT_Start" value="验证码:"></property>
+		<property name="CONTENT_End" value=",您正在使用供零在线,需要进行校验。【请勿向任何人提供您收到的短信验证码】"></property>
+		<property name="url_SMS" value="http://poprdwdp.yonghui.cn:50000/RESTAdapter/YH0110"></property>
+		<!-- 登录session存在时间 -->
+		<property name="sessionTimeOut" value="1800"></property>
+		<!-- 短信验证码失效时间/秒 -->
+		<property name="checking_code_InvalidTime" value="600"></property>
+		<!-- 短信验证码获取时间间隔/秒 -->
+		<property name="checking_code_reGetTime" value="60"></property>
+		<!-- 供应商子账号可拥有最大个数 -->
+		<property name="venderNumMax" value="100"></property>
+		<!-- 供应商子账号可激活最大个数 -->
+		<property name="venderChildNumMax" value="100"></property>
+		<!-- 手机号码正则 -->
+		<property name="phoneNumberRegular" value="^1[3|4|5|7|8]\d{9}$"></property> 
+		<!-- 邮箱正则 -->
+		<property name="emailRegular" value="^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((.[a-zA-Z0-9_-]{2,3}){1,2})$"></property> 
+		<!-- 大于1数字正则 -->
+		<property name="numberRegular" value="^[1-9][0-9]*$"></property> 
+		<!-- 网址正则 -->
+<!-- 		<property name="urlRegular" value="^(http|https|www|ftp|)?(://)?(\\w+(-\\w+)*)(\\.(\\w+(-\\w+)*))*((:\\d+)?)(/(\\w+(-\\w+)*))*(\\.?(\\w)*)(\\?)?(((\\w*%)*(\\w*\\?)*(\\w*:)*(\\w*\\+)*(\\w*\\.)*(\\w*&)*(\\w*-)*(\\w*=)*(\\w*%)*(\\w*\\?)*(\\w*:)*(\\w*\\+)*(\\w*\\.)*(\\w*&)*(\\w*-)*(\\w*=)*)*(\\w*)*)$"></property>  -->
+		<!-- 以下是上传图片、文件的配置 -->
+		<property name="FTPADPATH" value="/ad"></property>
+		<property name="FTPMSGPATH" value="/msg"></property>
+		<property name="FTPCOLUMNPATH" value="/column"></property>
+		<property name="FTPARTICLEPATH" value="/article"></property>
+		<property name="FTPMODULEPATH" value="/module"></property>
+		<property name="FTPSTORESIGNPATH" value="/storeSign"></property>
+		<property name="FTPJOINYHPATH" value="/joinyh"></property>
+		<property name="FTPSIZE" value="5242880"></property><!-- 大小5兆 -->
+		<property name="PICSIZE" value="409600"></property><!-- 大小1兆 -->
+		<property name="PICSIZE_JOINYH" value="1572864"></property><!-- 大小1.5兆 -->
+		
+		<!-- 图片ftp服务器路径设置 sit-->
+		<property name="FTPIP" value="10.1.30.135"></property>
+		<property name="FTPPORT" value="21"></property>
+		<property name="FTPNAME" value="scmftp"></property>
+		<property name="FTPPWD" value="scmftp"></property>
+		<property name="FTPPATHALL" value="ftp://scmftp:scmftp@10.1.30.135"></property>
+		<property name="FTPPATH" value="/home/scmftp/photo"></property>
+		<property name="HTTP" value="http://222.76.27.59:9001/photo"></property>
+
+		 <!-- 关键指标图片地址 sit-->
+		 <property name="android_xse_zt" value="http://222.76.27.59:9001/photo/key_target/android/zrxse.png"></property>
+		 <property name="android_kce_zt" value="http://222.76.27.59:9001/photo/key_target/android/kce.png"></property>
+		 <property name="android_ddmzl" value="http://222.76.27.59:9001/photo/key_target/android/ddmzl.png"></property>
+		 <property name="ios_xse_zt" value="http://222.76.27.59:9001/photo/key_target/ios/zrxse@3x.png"></property>
+		 <property name="ios_kce_zt" value="http://222.76.27.59:9001/photo/key_target/ios/kce@3x.png"></property>
+		 <property name="ios_ddmzl" value="http://222.76.27.59:9001/photo/key_target/ios/ddmzl@3x.png"></property>
+		 <property name="xse_zt_name" value="昨日销售额"></property>
+		 <property name="kce_zt_name" value="库存额"></property>
+		 <property name="ddmzl_name" value="订单满足率"></property>
+		 
+		<!-- 首页标志位 -->
+		<property name="pageFlag" value="1"></property>
+		
+		<!-- 公告消息url -->
+		<!-- 订阅URL -->
+		<!-- sit -->
+		<property name="messageInfo" value="http://glzxsit.yonghui.cn:8887/newvssportal/report/glzx/charts/page.html?noticeId="></property>
+		<property name="emption_url" value="http://glzxsit.yonghui.cn:8887/newvssportal/report/glzx/charts/dingyue.html"></property> 
+		
+		<!-- 友盟消息推送参数 -->
+		<property name="androidAppkey" value="57be8c3967e58e49ca003c6d"></property>
+		<property name="andriodSecret" value="1tjzwoupahgnzynlibqkfzaio8dblfyz"></property>
+		<property name="iosAppkey" value="57bbb1a067e58e8a55001370"></property>
+		<property name="iosSecret" value="v5vl0pndfzgmxmnbmph9bhoiid2igco2"></property>
+		
+		<property name="signDistance" value="2000"></property>
+		<property name="keyword" value="yonghui_lg"></property> <!-- 腾讯接口的poi_table的值 -->
+		<property name="key" value="5V6BZ-WCDK6-6WVSZ-MHT4A-LSJ6E-TDFLE"></property> <!-- 腾讯接口key的值 -->
+		<property name="signPicFlag" value="1"></property> <!-- 签到是否上传图片标识，1位上传图片，0为不上传图片 -->
+		
+		<!-- 调服务获取门店地址 sit-->
+		<property name="microserverurl" value="http://glzxsit.yonghui.cn:8887/yhmicroserver/"></property>
+		
+		<!--  扫描环境切换 sit-->
+		<property name="prdFlag" value="qas"></property>
+		
+	</global-propertys>
+</module-config>

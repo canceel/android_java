@@ -1,0 +1,80 @@
+10
+
+dir
+1365
+svn://10.1.30.220/yhvender/3_%E6%8A%80%E6%9C%AF%E5%BC%80%E5%8F%91/sourcecode/java/newvss/java/com/yh/vssService/comm
+svn://10.1.30.220/yhvender
+
+
+
+2016-10-24T02:00:35.413610Z
+1341
+chenxq
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+fe76aec3-18ee-482d-9176-a0907d22e972
+
+LogAppender.java
+file
+
+
+
+
+2016-10-24T03:55:55.109000Z
+864a2d63a1832300b34986839aa279d3
+2016-09-28T05:04:05.547761Z
+720
+chenxq
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+452
+
+customException
+dir
+
+dao
+dir
+
+mybatis
+dir
+
+service
+dir
+
+utils
+dir
+
+web
+dir
+
